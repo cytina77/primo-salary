@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Primo 薪水計算機</title>
+    <!-- 引入 Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 隱藏捲軸但保持可捲動 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen">
+
+    <div class="max-w-lg mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <!-- 標題區塊 -->
+        <header class="text-center mb-8 pt-4">
+            <h1 class="text-3xl font-extrabold text-indigo-600 tracking-tight">Primo 薪水計算機</h1>
+            <p class="text-sm text-slate-500 mt-2">自動彙整週薪，輕鬆掌握實拿收入 💸</p>
+        </header>
+
+        <!-- 參數與輸入區塊 -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
+            <h2 class="text-lg font-bold text-slate-700 mb-4 flex items-center border-b pb-2">
+                <span class="mr-2">📝</span> 新增工作紀錄
+            </h2>
+            
+            <form id="recordForm" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- 基本參數設定 (時薪與稅率) -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">時薪 ($)</label>
+                        <input type="number" id="hourlyRate" value="25" step="0.5" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">稅率 (%)</label>
+                        <input type="number" id="taxRate" value="15" step="0.1" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- 日期與時數輸入 -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">工作日期</label>
+                        <input type="date" id="workDate" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">工作時數</label>
+                        <input type="number" id="workHours" step="0.5" placeholder="例: 7.5" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-sm active:scale-[0.98]">
+                    儲存紀錄
+                </button>
+            </form>
+        </section>
+
+        <!-- 週薪彙整看板 -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h2 class="text-lg font-bold text-slate-700 flex items-center">
+                    <span class="mr-2">📊</span> 薪資看板
+                </h2>
+                <!-- 切換週別 -->
+                <select id="weekSelector" class="p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
+                    <!-- 動態生成週別選項 -->
+                </select>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 text-center mb-2">
+                <div class="bg-indigo-50 rounded-xl p-3">
+                    <p class="text-xs text-indigo-400 font-bold mb-1">總時數</p>
+                    <p id="totalHours" class="text-xl font-black text-indigo-700">0</p>
+                </div>
+                <div class="bg-amber-50 rounded-xl p-3">
+                    <p class="text-xs text-amber-500 font-bold mb-1">稅前薪水</p>
+                    <p id="totalGross" class="text-xl font-black text-amber-600">$0</p>
+                </div>
+                <div class="bg-emerald-50 rounded-xl p-3 shadow-inner shadow-emerald-100">
+                    <p class="text-xs text-emerald-500 font-bold mb-1">稅後實拿</p>
+                    <p id="totalNet" class="text-xl font-black text-emerald-600">$0</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 單週每日明細 -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+            <h2 class="text-lg font-bold text-slate-700 mb-3 flex items-center border-b pb-2">
+                <span class="mr-2">📅</span> 本週明細
+            </h2>
+            <div id="detailList" class="space-y-3 max-h-64 overflow-y-auto no-scrollbar pt-1">
+                <!-- 動態插入明細列表 -->
+            </div>
+        </section>
+
+    </div>
+
+    <!-- 核心 JavaScript 邏輯 -->
+    <script>
+        // 取得 DOM 元素
+        const form = document.getElementById('recordForm');
+        const workDateInput = document.getElementById('workDate');
+        const workHoursInput = document.getElementById('workHours');
+        const hourlyRateInput = document.getElementById('hourlyRate');
+        const taxRateInput = document.getElementById('taxRate');
+        const weekSelector = document.getElementById('weekSelector');
+        const detailList = document.getElementById('detailList');
+
+        // 資料庫初始化
+        const STORAGE_KEY = 'primo_salary_data';
+        let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+        // 預設填入今天日期
+        workDateInput.value = new Date().toISOString().split('T')[0];
+
+        // 取得給定日期的 ISO 週別格式 (YYYY-WXX) - 週一為一週開始
+        function getWeekString(dateString) {
+            const date = new Date(dateString);
+            date.setHours(0, 0, 0, 0);
+            date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+            const week1 = new Date(date.getFullYear(), 0, 4);
+            const weekNumber = 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+            return `${date.getFullYear()} 第 ${String(weekNumber).padStart(2, '0')} 週`;
+        }
+
+        // 儲存資料
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const date = workDateInput.value;
+            const hours = parseFloat(workHoursInput.value);
+            const rate = parseFloat(hourlyRateInput.value);
+            const tax = parseFloat(taxRateInput.value);
+
+            const record = {
+                id: Date.now().toString(),
+                date: date,
+                hours: hours,
+                rate: rate,
+                tax: tax,
+                weekString: getWeekString(date)
+            };
+
+            records.push(record);
+            // 依照日期由新到舊排序
+            records.sort((a, b) => new Date(b.date) - new Date(a.date));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+
+            workHoursInput.value = ''; // 清空時數欄位
+            
+            updateUI(record.weekString); // 更新畫面並切換到剛輸入的週別
+        });
+
+        // 刪除資料
+        function deleteRecord(id) {
+            if(confirm('確定要刪除這筆紀錄嗎？')) {
+                records = records.filter(r => r.id !== id);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+                updateUI(weekSelector.value);
+            }
+        }
+
+        // 更新下拉選單
+        function renderWeekSelector(targetWeek = null) {
+            const weeks = [...new Set(records.map(r => r.weekString))];
+            
+            if (weeks.length === 0) {
+                weekSelector.innerHTML = '<option value="">目前無紀錄</option>';
+                weekSelector.disabled = true;
+                return;
+            }
+
+            weekSelector.disabled = false;
+            weekSelector.innerHTML = weeks.map(week => 
+                `<option value="${week}">${week}</option>`
+            ).join('');
+
+            if (targetWeek && weeks.includes(targetWeek)) {
+                weekSelector.value = targetWeek;
+            }
+        }
+
+        // 渲染看板與明細
+        function renderDashboard() {
+            const currentWeek = weekSelector.value;
+            const weekRecords = records.filter(r => r.weekString === currentWeek);
+
+            let totalHours = 0;
+            let totalGross = 0;
+            let totalNet = 0;
+
+            if (weekRecords.length === 0) {
+                detailList.innerHTML = `<p class="text-center text-slate-400 text-sm py-4">該週尚無任何紀錄</p>`;
+            } else {
+                let listHTML = '';
+                weekRecords.forEach(r => {
+                    const gross = r.hours * r.rate;
+                    const net = gross * (1 - r.tax / 100);
+
+                    totalHours += r.hours;
+                    totalGross += gross;
+                    totalNet += net;
+
+                    listHTML += `
+                        <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl hover:shadow-sm transition">
+                            <div>
+                                <p class="font-bold text-slate-700">${r.date}</p>
+                                <p class="text-xs text-slate-500 mt-0.5">時數: <span class="text-indigo-600 font-semibold">${r.hours}h</span></p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-semibold text-emerald-600">實拿 $${net.toFixed(2)}</p>
+                                <p class="text-xs text-slate-400 mt-0.5">稅前 $${gross.toFixed(2)}</p>
+                            </div>
+                            <button onclick="deleteRecord('${r.id}')" class="ml-3 p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="刪除">
+                                🗑️
+                            </button>
+                        </div>
+                    `;
+                });
+                detailList.innerHTML = listHTML;
+            }
+
+            // 更新數據看板
+            document.getElementById('totalHours').innerText = totalHours.toFixed(1);
+            document.getElementById('totalGross').innerText = `$${totalGross.toFixed(2)}`;
+            document.getElementById('totalNet').innerText = `$${totalNet.toFixed(2)}`;
+        }
+
+        // 下拉選單改變時重新渲染
+        weekSelector.addEventListener('change', renderDashboard);
+
+        // 整合更新函式
+        function updateUI(targetWeek = null) {
+            renderWeekSelector(targetWeek);
+            renderDashboard();
+        }
+
+        // 初始載入
+        updateUI(records.length > 0 ? records[0].weekString : null);
+
+    </script>
+</body>
+</html>
