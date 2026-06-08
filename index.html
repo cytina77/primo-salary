@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Primo 薪水計算機</title>
-    <!-- 引入 Tailwind CSS (CDN) -->
+    <title>Primo 智慧工時與薪水計算機</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 隱藏捲軸但保持可捲動 */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -16,102 +14,114 @@
 
     <div class="max-w-lg mx-auto p-4 sm:p-6 lg:p-8">
         
-        <!-- 標題區塊 -->
-        <header class="text-center mb-8 pt-4">
+        <header class="text-center mb-6 pt-4">
             <h1 class="text-3xl font-extrabold text-indigo-600 tracking-tight">Primo 薪水計算機</h1>
-            <p class="text-sm text-slate-500 mt-2">自動彙整週薪，輕鬆掌握實拿收入 💸</p>
+            <p class="text-sm text-slate-500 mt-2">自動換算班表工時 🗓️ 智慧拆解加班費 (Base/1.5x/2x)</p>
         </header>
 
-        <!-- 參數與輸入區塊 -->
         <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
             <h2 class="text-lg font-bold text-slate-700 mb-4 flex items-center border-b pb-2">
-                <span class="mr-2">📝</span> 新增工作紀錄
+                <span class="mr-2">📝</span> 輸入今日班表
             </h2>
             
             <form id="recordForm" class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <!-- 基本參數設定 (時薪與稅率) -->
+                <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-500 mb-1">時薪 ($)</label>
-                        <input type="number" id="hourlyRate" value="25" step="0.5" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                        <label class="block text-[11px] font-bold text-slate-400 mb-0.5">常規時薪</label>
+                        <input type="number" id="baseRate" value="32.94" step="0.01" class="w-full text-center bg-white border border-slate-200 rounded p-1 text-sm font-semibold text-slate-700">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-500 mb-1">稅率 (%)</label>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-0.5">1.5倍時薪</label>
+                        <input type="number" id="ot15Rate" value="39.53" step="0.01" class="w-full text-center bg-white border border-slate-200 rounded p-1 text-sm font-semibold text-amber-600">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-0.5">2倍時薪</label>
+                        <input type="number" id="ot20Rate" value="52.70" step="0.01" class="w-full text-center bg-white border border-slate-200 rounded p-1 text-sm font-semibold text-red-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">工作日期</label>
+                    <input type="date" id="workDate" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">上班時間 (預設 06:40)</label>
+                        <input type="time" id="startTime" value="06:40" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">下班時間 (預設 14:40)</label>
+                        <input type="time" id="endTime" value="14:40" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">扣除休息時間 (分鐘)</label>
+                        <input type="number" id="breakMinutes" value="30" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">預扣稅率 (%)</label>
                         <input type="number" id="taxRate" value="15" step="0.1" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <!-- 日期與時數輸入 -->
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 mb-1">工作日期</label>
-                        <input type="date" id="workDate" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 mb-1">工作時數</label>
-                        <input type="number" id="workHours" step="0.5" placeholder="例: 7.5" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
-                    </div>
-                </div>
-
                 <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-sm active:scale-[0.98]">
-                    儲存紀錄
+                    儲存今日紀錄
                 </button>
             </form>
         </section>
 
-        <!-- 週薪彙整看板 -->
         <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
             <div class="flex justify-between items-center mb-4 border-b pb-3">
                 <h2 class="text-lg font-bold text-slate-700 flex items-center">
-                    <span class="mr-2">📊</span> 薪資看板
+                    <span class="mr-2">📊</span> 本週薪資總覽
                 </h2>
-                <!-- 切換週別 -->
                 <select id="weekSelector" class="p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
-                    <!-- 動態生成週別選項 -->
-                </select>
+                    </select>
             </div>
 
-            <div class="grid grid-cols-3 gap-3 text-center mb-2">
+            <div class="grid grid-cols-3 gap-2.5 text-center mb-2">
                 <div class="bg-indigo-50 rounded-xl p-3">
-                    <p class="text-xs text-indigo-400 font-bold mb-1">總時數</p>
-                    <p id="totalHours" class="text-xl font-black text-indigo-700">0</p>
+                    <p class="text-[11px] text-indigo-500 font-bold mb-1">總工時</p>
+                    <p id="totalHours" class="text-lg font-black text-indigo-700">0 h</p>
                 </div>
                 <div class="bg-amber-50 rounded-xl p-3">
-                    <p class="text-xs text-amber-500 font-bold mb-1">稅前薪水</p>
-                    <p id="totalGross" class="text-xl font-black text-amber-600">$0</p>
+                    <p class="text-[11px] text-amber-600 font-bold mb-1">稅前 Gross</p>
+                    <p id="totalGross" class="text-lg font-black text-amber-600">$0.00</p>
                 </div>
-                <div class="bg-emerald-50 rounded-xl p-3 shadow-inner shadow-emerald-100">
-                    <p class="text-xs text-emerald-500 font-bold mb-1">稅後實拿</p>
-                    <p id="totalNet" class="text-xl font-black text-emerald-600">$0</p>
+                <div class="bg-emerald-50 rounded-xl p-3 shadow-inner shadow-emerald-50">
+                    <p class="text-[11px] text-emerald-600 font-bold mb-1">稅後 Net (實拿)</p>
+                    <p id="totalNet" class="text-lg font-black text-emerald-700">$0.00</p>
                 </div>
             </div>
         </section>
 
-        <!-- 單週每日明細 -->
         <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
             <h2 class="text-lg font-bold text-slate-700 mb-3 flex items-center border-b pb-2">
-                <span class="mr-2">📅</span> 本週明細
+                <span class="mr-2">📅</span> 當週每日明細與加成分配
             </h2>
-            <div id="detailList" class="space-y-3 max-h-64 overflow-y-auto no-scrollbar pt-1">
-                <!-- 動態插入明細列表 -->
-            </div>
+            <div id="detailList" class="space-y-3 max-h-80 overflow-y-auto no-scrollbar pt-1">
+                </div>
         </section>
 
     </div>
 
-    <!-- 核心 JavaScript 邏輯 -->
     <script>
-        // 取得 DOM 元素
         const form = document.getElementById('recordForm');
         const workDateInput = document.getElementById('workDate');
-        const workHoursInput = document.getElementById('workHours');
-        const hourlyRateInput = document.getElementById('hourlyRate');
+        const startTimeInput = document.getElementById('startTime');
+        const endTimeInput = document.getElementById('endTime');
+        const breakMinutesInput = document.getElementById('breakMinutes');
+        const baseRateInput = document.getElementById('baseRate');
+        const ot15RateInput = document.getElementById('ot15Rate');
+        const ot20RateInput = document.getElementById('ot20Rate');
         const taxRateInput = document.getElementById('taxRate');
         const weekSelector = document.getElementById('weekSelector');
         const detailList = document.getElementById('detailList');
 
-        // 資料庫初始化
-        const STORAGE_KEY = 'primo_salary_data';
+        const STORAGE_KEY = 'primo_ea_time_salary_data';
         let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
         // 預設填入今天日期
@@ -124,38 +134,72 @@
             date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
             const week1 = new Date(date.getFullYear(), 0, 4);
             const weekNumber = 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
-            return `${date.getFullYear()} 第 ${String(weekNumber).padStart(2, '0')} 週`;
+            return `${date.getFullYear()} 年第 ${String(weekNumber).padStart(2, '0')} 週`;
         }
 
-        // 儲存資料
+        // 核心計算：將上下班時間換算為十進位制小時工時（扣除休息時間）
+        function calculateHours(startStr, endStr, breakMin) {
+            const [startH, startM] = startStr.split(':').map(Number);
+            const [endH, endM] = endStr.split(':').map(Number);
+
+            // 換算成當天總分鐘數
+            let startTotalMinutes = startH * 60 + startM;
+            let endTotalMinutes = endH * 60 + endM;
+
+            // 跨年/跨夜班次基本處理 (Primo多為早班或午班，若有跨夜則下班分鐘加一天)
+            if (endTotalMinutes < startTotalMinutes) {
+                endTotalMinutes += 24 * 60;
+            }
+
+            // 總工作分鐘數扣除休息時間
+            let netMinutes = endTotalMinutes - startTotalMinutes - breakMin;
+            if (netMinutes < 0) netMinutes = 0;
+
+            // 轉化為十進位制小時，四捨五入到小數點後兩位
+            return Math.round((netMinutes / 60) * 100) / 100;
+        }
+
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             
             const date = workDateInput.value;
-            const hours = parseFloat(workHoursInput.value);
-            const rate = parseFloat(hourlyRateInput.value);
+            const startTime = startTimeInput.value;
+            const endTime = endTimeInput.value;
+            const breakMin = parseFloat(breakMinutesInput.value);
+            
+            const baseR = parseFloat(baseRateInput.value);
+            const ot15R = parseFloat(ot15RateInput.value);
+            const ot20R = parseFloat(ot20RateInput.value);
             const tax = parseFloat(taxRateInput.value);
+
+            // 自動算出工時
+            const hours = calculateHours(startTime, endTime, breakMin);
 
             const record = {
                 id: Date.now().toString(),
                 date: date,
+                startTime: startTime,
+                endTime: endTime,
+                breakMin: breakMin,
                 hours: hours,
-                rate: rate,
+                baseRate: baseR,
+                ot15Rate: ot15R,
+                ot20Rate: ot20R,
                 tax: tax,
                 weekString: getWeekString(date)
             };
 
             records.push(record);
-            // 依照日期由新到舊排序
-            records.sort((a, b) => new Date(b.date) - new Date(a.date));
+            // 依照日期由舊到新排序，確保當週累積工時能從週一順暢累加
+            records.sort((a, b) => new Date(a.date) - new Date(b.date));
             localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
 
-            workHoursInput.value = ''; // 清空時數欄位
-            
-            updateUI(record.weekString); // 更新畫面並切換到剛輸入的週別
+            // 還原預設下班時間，方便明天繼續使用
+            endTimeInput.value = "14:40";
+            updateUI(record.weekString);
+            alert(`儲存成功！當天算出工時為：${hours} 小時`);
         });
 
-        // 刪除資料
         function deleteRecord(id) {
             if(confirm('確定要刪除這筆紀錄嗎？')) {
                 records = records.filter(r => r.id !== id);
@@ -164,9 +208,9 @@
             }
         }
 
-        // 更新下拉選單
         function renderWeekSelector(targetWeek = null) {
             const weeks = [...new Set(records.map(r => r.weekString))];
+            weeks.sort((a, b) => b.localeCompare(a));
             
             if (weeks.length === 0) {
                 weekSelector.innerHTML = '<option value="">目前無紀錄</option>';
@@ -175,73 +219,107 @@
             }
 
             weekSelector.disabled = false;
-            weekSelector.innerHTML = weeks.map(week => 
-                `<option value="${week}">${week}</option>`
-            ).join('');
+            weekSelector.innerHTML = weeks.map(week => `<option value="${week}">${week}</option>`).join('');
 
             if (targetWeek && weeks.includes(targetWeek)) {
                 weekSelector.value = targetWeek;
             }
         }
 
-        // 渲染看板與明細
+        // 薪資計算核心引擎
         function renderDashboard() {
             const currentWeek = weekSelector.value;
-            const weekRecords = records.filter(r => r.weekString === currentWeek);
+            const weekRecords = records.filter(r => r.weekString === currentWeek).sort((a, b) => new Date(a.date) - new Date(b.date));
 
-            let totalHours = 0;
-            let totalGross = 0;
-            let totalNet = 0;
+            let accumulatedWeeklyHours = 0; 
+            
+            let totalHoursSum = 0;
+            let totalGrossSum = 0;
+            let totalNetSum = 0;
 
             if (weekRecords.length === 0) {
                 detailList.innerHTML = `<p class="text-center text-slate-400 text-sm py-4">該週尚無任何紀錄</p>`;
             } else {
                 let listHTML = '';
+                
                 weekRecords.forEach(r => {
-                    const gross = r.hours * r.rate;
-                    const net = gross * (1 - r.tax / 100);
+                    let dayHours = r.hours;
+                    let dayBase = 0;
+                    let dayOT15 = 0;
+                    let dayOT20 = 0;
 
-                    totalHours += r.hours;
-                    totalGross += gross;
-                    totalNet += net;
+                    // 1. 單日規則：平日超過 10 小時算 1.5 倍
+                    let normalDailyHours = dayHours;
+                    let dailyExcessOT = 0;
+                    if (dayHours > 10) {
+                        normalDailyHours = 10;
+                        dailyExcessOT = dayHours - 10;
+                    }
 
-                    listHTML += `
-                        <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl hover:shadow-sm transition">
-                            <div>
-                                <p class="font-bold text-slate-700">${r.date}</p>
-                                <p class="text-xs text-slate-500 mt-0.5">時數: <span class="text-indigo-600 font-semibold">${r.hours}h</span></p>
+                    // 2. 累加模擬分配到當週 38h 與 41h 門檻
+                    for (let i = 0; i < normalDailyHours; i += 0.01) {
+                        if (accumulatedWeeklyHours < 38) {
+                            dayBase += 0.01;
+                        } else if (accumulatedWeeklyHours >= 38 && accumulatedWeeklyHours < 41) {
+                            dayOT15 += 0.01;
+                        } else {
+                            dayOT20 += 0.01;
+                        }
+                        accumulatedWeeklyHours += 0.01;
+                    }
+
+                    dayOT15 += dailyExcessOT;
+                    accumulatedWeeklyHours += dailyExcessOT;
+
+                    dayBase = Math.round(dayBase * 100) / 100;
+                    dayOT15 = Math.round(dayOT15 * 100) / 100;
+                    dayOT20 = Math.round(dayOT20 * 100) / 100;
+
+                    const dayGross = (dayBase * r.baseRate) + (dayOT15 * r.ot15Rate) + (dayOT20 * r.ot20Rate);
+                    const dayNet = dayGross * (1 - r.tax / 100);
+
+                    totalHoursSum += r.hours;
+                    totalGrossSum += dayGross;
+                    totalNetSum += dayNet;
+
+                    listHTML = `
+                        <div class="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-2">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="font-bold text-slate-700">${r.date}</span>
+                                    <span class="text-[11px] text-slate-400 block mt-0.5">班表: ${r.startTime} ~ ${r.endTime} (休 ${r.breakMin}m)</span>
+                                </div>
+                                <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full">實計: ${r.hours}h</span>
+                                <button onclick="deleteRecord('${r.id}')" class="text-slate-400 hover:text-red-500 text-xs">🗑️ 刪除</button>
                             </div>
-                            <div class="text-right">
-                                <p class="text-sm font-semibold text-emerald-600">實拿 $${net.toFixed(2)}</p>
-                                <p class="text-xs text-slate-400 mt-0.5">稅前 $${gross.toFixed(2)}</p>
+                            <div class="grid grid-cols-3 gap-1 text-[11px] text-slate-500 bg-white p-2 rounded-lg border border-slate-100">
+                                <div>正常 ($${r.baseRate}): <b class="text-slate-700">${dayBase}h</b></div>
+                                <div>1.5倍 ($${r.ot15Rate}): <b class="text-amber-600">${dayOT15}h</b></div>
+                                <div>2倍 ($${r.ot20Rate}): <b class="text-red-500">${dayOT20}h</b></div>
                             </div>
-                            <button onclick="deleteRecord('${r.id}')" class="ml-3 p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="刪除">
-                                🗑️
-                            </button>
+                            <div class="flex justify-between items-center text-xs pt-1 border-t border-dashed border-slate-200">
+                                <span class="text-slate-400">當天稅前: $${dayGross.toFixed(2)}</span>
+                                <span class="font-bold text-emerald-600">實拿: $${dayNet.toFixed(2)}</span>
+                            </div>
                         </div>
-                    `;
+                    ` + listHTML; 
                 });
                 detailList.innerHTML = listHTML;
             }
 
-            // 更新數據看板
-            document.getElementById('totalHours').innerText = totalHours.toFixed(1);
-            document.getElementById('totalGross').innerText = `$${totalGross.toFixed(2)}`;
-            document.getElementById('totalNet').innerText = `$${totalNet.toFixed(2)}`;
+            document.getElementById('totalHours').innerText = totalHoursSum.toFixed(2) + ' h';
+            document.getElementById('totalGross').innerText = `$${totalGrossSum.toFixed(2)}`;
+            document.getElementById('totalNet').innerText = `$${totalNetSum.toFixed(2)}`;
         }
 
-        // 下拉選單改變時重新渲染
         weekSelector.addEventListener('change', renderDashboard);
 
-        // 整合更新函式
         function updateUI(targetWeek = null) {
             renderWeekSelector(targetWeek);
             renderDashboard();
         }
 
-        // 初始載入
-        updateUI(records.length > 0 ? records[0].weekString : null);
-
+        updateUI(records.length > 0 ? records[records.length - 1].weekString : null);
     </script>
 </body>
 </html>
